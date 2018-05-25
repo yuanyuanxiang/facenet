@@ -32,9 +32,10 @@ from __future__ import print_function
 import tensorflow as tf
 import numpy as np
 import argparse
+import sys
+sys.path.append('src')
 import facenet
 import os
-import sys
 import math
 import pickle
 from sklearn.svm import SVC
