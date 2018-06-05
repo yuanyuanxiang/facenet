@@ -93,6 +93,13 @@ def main(args):
                 # Train classifier
                 print('Training classifier')
                 model = SVC(kernel='linear', probability=True)
+                print('emb_array.dtype =', emb_array.dtype)
+                print('emb_array.shape =', emb_array.shape)
+                print('emb_array =', emb_array)
+                np_label = np.array(labels)
+                print('labels.dtype =', np_label.dtype)
+                print('labels.shape =', np_label.shape)
+                print('np_label =', np_label)
                 model.fit(emb_array, labels)
             
                 # Create a list of class names

@@ -30,22 +30,32 @@ import align.detect_face
 
 # 初始化图
 with tf.Graph().as_default():
-    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.6)
-    sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
+    sess = tf.Session(config=config)
     with sess.as_default():
         pnet, rnet, onet = align.detect_face.create_mtcnn(sess, None)
 
 # 检测图像数据
 def test_src(image_src):
+    image_np = np.array(image_src).astype(np.uint8)
 
     minsize = 20 # minimum size of face
     threshold = [ 0.6, 0.7, 0.7 ]  # three steps's threshold
     factor = 0.709 # scale factor
+    face_crop_margin = 32
 
-    image_np = np.array(image_src).astype(np.uint8)
     bounding_boxes, _ = align.detect_face.detect_face(image_np, minsize, pnet, rnet, onet, threshold, factor)
     result = np.empty(bounding_boxes.shape, np.float32)
-    result[:] = bounding_boxes[:]
+    index = 0
+    for bb in bounding_boxes:
+        img_size = np.asarray(image_np.shape)[0:2]
+        result[index, 0] = np.maximum(bb[0] - face_crop_margin / 2, 0)
+        result[index, 1] = np.maximum(bb[1] - face_crop_margin / 2, 0)
+        result[index, 2] = np.minimum(bb[2] + face_crop_margin / 2, img_size[1])
+        result[index, 3] = np.minimum(bb[3] + face_crop_margin / 2, img_size[0])
+        result[index, 4] = bb[4]
+        index = index + 1
 
     return result
 
@@ -53,6 +63,7 @@ def test_src(image_src):
 def test_image(image_file):
     try:
         image = Image.open(image_file)
+        print('>>> Run test on image:', image_file)
     except IOError:
         print('IOError: File is not accessible.')
         return
@@ -61,8 +72,9 @@ def test_image(image_file):
     print('bounding_boxes.dtype =', bounding_boxes.dtype)
     print('bounding_boxes =', bounding_boxes)
 
+# 激活GPU
+test_image('image.jpg')
+
+# MAIN
 if __name__ == '__main__':
-    if len(sys.argv) == 1:
-        test_image('image.jpg')
-    else:
-        test_image(sys.argv[1])
+    test_image('image.jpg' if (1 == len(sys.argv)) else sys.argv[1])

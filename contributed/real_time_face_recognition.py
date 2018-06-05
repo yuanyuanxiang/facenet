@@ -1,4 +1,5 @@
-# coding=utf-8
+# -*- coding: utf-8 -*- 
+
 """Performs face detection in realtime.
 
 Based on code from https://github.com/shanren7/real_time_face_recognition
@@ -34,6 +35,10 @@ import cv2
 
 import face
 
+import numpy as np
+from PIL import Image, ImageDraw, ImageFont
+
+font = ImageFont.truetype('./simfang.ttf', 16)
 
 def add_overlays(frame, faces, frame_rate):
     if faces is not None:
@@ -43,13 +48,22 @@ def add_overlays(frame, faces, frame_rate):
                           (face_bb[0], face_bb[1]), (face_bb[2], face_bb[3]),
                           (0, 255, 0), 2)
             if face.name is not None:
+                pl = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+                """
+                #OpenCV不支持叠加中文（或者比较麻烦）
                 cv2.putText(frame, face.name, (face_bb[0], face_bb[3]),
                             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0),
                             thickness=2, lineType=2)
+                """
+                draw = ImageDraw.Draw(pl)
+                text = face.name + ':' + '%.04f'%face.prediction if face.prediction > 0.5 else 'unknown'
+                draw.text((face_bb[0], face_bb[3]), text, font = font)
+                frame = cv2.cvtColor(np.asarray(pl), cv2.COLOR_RGB2BGR)
 
     cv2.putText(frame, str(frame_rate) + " fps", (10, 30),
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0),
                 thickness=2, lineType=2)
+    return frame
 
 
 def main(args):
@@ -80,10 +94,11 @@ def main(args):
                 start_time = time.time()
                 frame_count = 0
 
-        add_overlays(frame, faces, frame_rate)
+        frame = add_overlays(frame, faces, frame_rate)
 
         frame_count += 1
-        cv2.imshow('Video', frame)
+        cv2.namedWindow('FaceDetect', cv2.WINDOW_NORMAL)
+        cv2.imshow('FaceDetect', frame)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
