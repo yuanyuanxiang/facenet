@@ -1,0 +1,16 @@
+已知"objDetector.exe"运行依赖于：
+
+1、动态链接库（64位）
+freetype.dll
+mfc110u.dll
+msvcp110.dll
+msvcr110.dll
+opencv_core320.dll
+opencv_highgui320.dll
+opencv_imgcodecs320.dll
+opencv_imgproc320.dll
+opencv_videoio320.dll
+python35.dll
+
+2、VC 2015 运行库（64位）
+vc_redist.x64.exe
